@@ -1,0 +1,8 @@
+src
+test
+.github
+.changeset
+*.config.ts
+tsconfig.json
+.prettierrc.json
+eslint.config.js
