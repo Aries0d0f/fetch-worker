@@ -9,7 +9,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  packages: write
 
 jobs:
   release:
@@ -20,12 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      # changesets/action shells out to `npm publish`, so npm still needs a
-      # registry token configured even though bun is used for everything else.
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
+          registry-url: https://npm.pkg.github.com
+          scope: '@aries0d0f'
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -37,7 +36,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
 
-      - name: Create release PR or publish to npm
+      - name: Create release PR or publish to GitHub Packages
         id: changesets
         uses: changesets/action@v1
         with:
@@ -46,5 +45,4 @@ jobs:
           commit: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

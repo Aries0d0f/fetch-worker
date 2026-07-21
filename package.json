@@ -1,5 +1,5 @@
 {
-  "name": "fetch-worker",
+  "name": "@aries0d0f/fetch-worker",
   "version": "0.1.0",
   "description": "Native fetch, offloaded to a Web Worker — a tiny, dependency-light HTTP client with a comlink-powered worker transport and automatic main-thread fallback.",
   "keywords": [
@@ -46,7 +46,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "registry": "https://npm.pkg.github.com"
   },
   "packageManager": "bun@1.3.14",
   "scripts": {
