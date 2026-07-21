@@ -1,0 +1,48 @@
+import { HttpResponse, http as mock } from 'msw';
+
+export const handlers = [
+  mock.get('https://api.test/json', () => HttpResponse.json({ hello: 'world' })),
+
+  mock.get('https://api.test/yaml', () =>
+    HttpResponse.text('hello: world\ncount: 2\n', {
+      headers: { 'Content-Type': 'application/yaml' }
+    })
+  ),
+
+  mock.get('https://api.test/text', () => HttpResponse.text('plain text body')),
+
+  mock.get('https://api.test/echo-headers', ({ request }) =>
+    HttpResponse.json(Object.fromEntries(request.headers.entries()))
+  ),
+
+  mock.head('https://api.test/head', () => new HttpResponse(null, { status: 200 })),
+
+  mock.post('https://api.test/echo', async ({ request }) =>
+    HttpResponse.json(await request.json())
+  ),
+
+  mock.post('https://api.test/upload', async ({ request }) => {
+    const form = await request.formData();
+    const file = form.get('file') as File | null;
+    return HttpResponse.json({ name: file?.name ?? null, fields: [...form.keys()] });
+  }),
+
+  mock.put('https://api.test/echo', async ({ request }) => HttpResponse.json(await request.json())),
+
+  mock.patch('https://api.test/echo', async ({ request }) =>
+    HttpResponse.json(await request.json())
+  ),
+
+  mock.delete('https://api.test/thing/1', () => new HttpResponse(null, { status: 204 })),
+
+  mock.get('https://api.test/not-found', () =>
+    HttpResponse.json({ title: 'Not Found', status: 404, detail: 'missing' }, { status: 404 })
+  ),
+
+  mock.get('https://api.test/bad-error-body', () => new HttpResponse('oops', { status: 500 })),
+
+  mock.get('https://api.test/slow', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return HttpResponse.json({ done: true });
+  })
+];
