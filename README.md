@@ -1,8 +1,8 @@
 # fetch-worker
 
 [![CI](https://github.com/aries0d0f/fetch-worker/actions/workflows/ci.yml/badge.svg)](https://github.com/aries0d0f/fetch-worker/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/fetch-worker.svg)](https://www.npmjs.com/package/fetch-worker)
-[![license](https://img.shields.io/npm/l/fetch-worker.svg)](./LICENSE)
+[![GitHub Packages](https://img.shields.io/badge/package-GitHub%20Packages-blue?logo=github)](https://github.com/aries0d0f/fetch-worker/pkgs/npm/fetch-worker)
+[![license](https://img.shields.io/github/license/aries0d0f/fetch-worker.svg)](./LICENSE)
 
 An axios-style HTTP client built entirely on native `fetch` — with requests run
 on a dedicated Web Worker thread, in parallel with your main thread, via
@@ -30,15 +30,29 @@ generic over your payloads.
 
 ## Install
 
+This package is published to [GitHub Packages](https://github.com/aries0d0f/fetch-worker/pkgs/npm/fetch-worker),
+not npmjs.org. GitHub Packages requires authentication to install from, even
+for public packages, so point your package manager at the registry with a
+token that has `read:packages` scope first.
+
+Add to `.npmrc` in your project (or `~/.npmrc` globally):
+
+```ini
+@aries0d0f:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+Then install as usual:
+
 ```sh
-bun add fetch-worker
-# or: npm install fetch-worker / pnpm add fetch-worker / yarn add fetch-worker
+bun add @aries0d0f/fetch-worker
+# or: npm install @aries0d0f/fetch-worker / pnpm add @aries0d0f/fetch-worker
 ```
 
 ## Usage
 
 ```ts
-import http from 'fetch-worker';
+import http from '@aries0d0f/fetch-worker';
 
 const res = await http.get<{ id: number; name: string }>('/api/users/1');
 const user = await res.json();
@@ -88,7 +102,7 @@ Import the core client directly to always run on the current thread (useful
 in tests, or when you deliberately don't want a worker):
 
 ```ts
-import { http } from 'fetch-worker/core';
+import { http } from '@aries0d0f/fetch-worker/core';
 ```
 
 ### Framework-reactive values
@@ -132,7 +146,7 @@ bun run typecheck    # tsc --noEmit
 
 This repo uses [Changesets](https://github.com/changesets/changesets) for
 versioning. Run `bun run changeset` alongside your PR to describe the change;
-CI opens a "Version Packages" PR and publishes to npm on merge.
+CI opens a "Version Packages" PR and publishes to GitHub Packages on merge.
 
 ## License
 
