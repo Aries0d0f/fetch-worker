@@ -10,6 +10,7 @@ permissions:
   contents: write
   pull-requests: write
   packages: write
+  id-token: write
 
 jobs:
   release:
@@ -22,8 +23,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: https://npm.pkg.github.com
+          node-version: 26
+          registry-url: https://registry.npmjs.org
           scope: '@aries0d0f'
 
       - uses: oven-sh/setup-bun@v2
@@ -36,7 +37,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
 
-      - name: Create release PR or publish to GitHub Packages
+      - name: Create release PR or publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
@@ -45,4 +46,17 @@ jobs:
           commit: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node for GitHub Packages
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          registry-url: https://npm.pkg.github.com
+          scope: '@aries0d0f'
+
+      - name: Publish to GitHub Packages
+        if: steps.changesets.outputs.published == 'true'
+        run: npm publish
+        env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
