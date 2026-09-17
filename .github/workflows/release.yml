@@ -61,11 +61,17 @@ jobs:
         if: steps.changesets.outputs.has-changesets == 'false'
         run: |
           bun run release
-          if [ -n "$(git tag --points-at HEAD)" ]; then
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
             echo "published=true" >> "$GITHUB_OUTPUT"
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Push git tags
+        if: steps.npm-publish.outputs.published == 'true'
+        run: git push origin --tags
 
       - name: Setup Node for GitHub Packages
         if: steps.npm-publish.outputs.published == 'true'
