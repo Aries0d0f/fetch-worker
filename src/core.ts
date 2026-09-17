@@ -4,7 +4,6 @@ import { proxy } from 'comlink';
 import { load } from 'js-yaml';
 
 type _Response = Response;
-type _Error = Error;
 
 /**
  * A structured-clone-safe stand-in for the `Headers` API.
@@ -82,14 +81,51 @@ export namespace HTTP {
     headers: Record<string, string>;
     error: Error;
   };
-  export type Error = {
-    title: string;
-    status: number;
-    detail: string;
-    error?: _Error;
+  /**
+   * A "Problem Details" object as defined by RFC 9457
+   * (https://www.rfc-editor.org/rfc/rfc9457).
+   */
+  export type ProblemDetails = {
+    type: string;
+    title?: string;
+    status?: number;
+    detail?: string;
+    instance?: string;
+    [extension: string]: unknown;
   };
+  /**
+   * The error carried by a rejected `HTTP.Exception`: a parsed
+   * `HTTP.ProblemDetails` object when the response is `application/problem+json`,
+   * otherwise the raw response body text, same as native `fetch` would give you.
+   */
+  export type Error = ProblemDetails | string;
   export type Controller = AbortController;
 }
+
+/**
+ * Reads a non-ok response body into an `HTTP.Error`. Only
+ * `application/problem+json` gets special treatment (parsed per RFC 9457);
+ * everything else — including a body that fails to parse despite that media
+ * type — is returned as the raw response text, same as native `fetch`.
+ */
+const parseErrorBody = async (
+  res: Pick<_Response, 'headers'> & { clone(): _Response }
+): Promise<HTTP.Error> => {
+  const isProblemJson = /^\s*application\/problem\+json\s*(;|$)/i.test(
+    res.headers.get('content-type') ?? ''
+  );
+
+  if (isProblemJson) {
+    try {
+      const problem = (await res.clone().json()) as Partial<HTTP.ProblemDetails>;
+      return { type: 'about:blank', ...problem };
+    } catch {
+      // Malformed problem+json body: fall through to a raw text read below.
+    }
+  }
+
+  return res.clone().text();
+};
 
 const defaultOptions: HTTP.Options<false> = {
   credentials: 'same-origin',
@@ -158,18 +194,7 @@ const requestHandler: {
   })
     .then(async (res: Omit<HTTP.Response<Context>, 'yaml' | 'headers'> & { headers: Headers }) => {
       if (!res.ok) {
-        let error: HTTP.Error;
-
-        try {
-          error = await res.clone().json();
-        } catch (err) {
-          error = {
-            title: `${res.status === 401 ? '' : 'Unknown Error: '}${res.statusText}`,
-            status: res.status,
-            detail: (await res.clone().text()) ?? String(err),
-            error: new Error((await res.clone().text()) ?? String(err))
-          };
-        }
+        const error = await parseErrorBody(res);
 
         return Promise.reject({
           ok: res.ok,
