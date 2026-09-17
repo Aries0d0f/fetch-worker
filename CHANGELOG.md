@@ -1,5 +1,11 @@
 # @aries0d0f/fetch-worker
 
+## 0.2.2
+
+### Patch Changes
+
+- 34c9a67: Audit & bump dependencies
+
 ## 0.2.1
 
 ### Patch Changes
