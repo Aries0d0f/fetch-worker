@@ -65,21 +65,21 @@
   },
   "dependencies": {
     "comlink": "^4.4.2",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.3.2"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
-    "@eslint/js": "^9.38.0",
+    "@eslint/js": "^9.39.5",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.10.1",
-    "@vitest/coverage-v8": "^5.0.0",
-    "eslint": "^9.38.0",
+    "@types/node": "^24.13.5",
+    "@vitest/coverage-v8": "^5.0.1",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
-    "msw": "^2.11.6",
-    "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
+    "msw": "^2.15.0",
+    "prettier": "^3.9.7",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vitest": "^5.0.0"
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.1"
   }
 }
