@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -15,10 +17,12 @@ permissions:
 jobs:
   release:
     name: Release
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v7
@@ -33,20 +37,25 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - run: bun run lint
-      - run: bun run typecheck
-      - run: bun run test
-
-      - name: Publish to npm
+      - name: Create/update Version Packages PR
         id: changesets
         uses: changesets/action@v2
-        with:
-          publish-script: bun run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Publish to npm
+        id: npm-publish
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          bun run release
+          if [ -n "$(git tag --points-at HEAD)" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node for GitHub Packages
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.npm-publish.outputs.published == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: 26
@@ -54,7 +63,7 @@ jobs:
           scope: '@aries0d0f'
 
       - name: Publish to GitHub Packages
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.npm-publish.outputs.published == 'true'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
