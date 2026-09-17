@@ -37,7 +37,12 @@ export const handlers = [
 
   mock.get('https://api.test/not-found', () =>
     HttpResponse.json(
-      { type: 'https://example.com/probs/not-found', title: 'Not Found', status: 404, detail: 'missing' },
+      {
+        type: 'https://example.com/probs/not-found',
+        title: 'Not Found',
+        status: 404,
+        detail: 'missing'
+      },
       { status: 404, headers: { 'Content-Type': 'application/problem+json' } }
     )
   ),
