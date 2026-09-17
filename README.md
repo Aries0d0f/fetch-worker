@@ -1,6 +1,7 @@
 # fetch-worker
 
 [![CI](https://github.com/aries0d0f/fetch-worker/actions/workflows/ci.yml/badge.svg)](https://github.com/aries0d0f/fetch-worker/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40aries0d0f%2Ffetch-worker?logo=npm)](https://www.npmjs.com/package/@aries0d0f/fetch-worker)
 [![GitHub Packages](https://img.shields.io/badge/package-GitHub%20Packages-blue?logo=github)](https://github.com/aries0d0f/fetch-worker/pkgs/npm/fetch-worker)
 [![license](https://img.shields.io/github/license/aries0d0f/fetch-worker.svg)](./LICENSE)
 
@@ -30,10 +31,19 @@ generic over your payloads.
 
 ## Install
 
-This package is published to [GitHub Packages](https://github.com/aries0d0f/fetch-worker/pkgs/npm/fetch-worker),
-not npmjs.org. GitHub Packages requires authentication to install from, even
-for public packages, so point your package manager at the registry with a
-token that has `read:packages` scope first.
+This package is published to both [npmjs.org](https://www.npmjs.com/package/@aries0d0f/fetch-worker)
+and [GitHub Packages](https://github.com/aries0d0f/fetch-worker/pkgs/npm/fetch-worker).
+
+From npmjs.org, no extra setup is needed:
+
+```sh
+bun add @aries0d0f/fetch-worker
+# or: npm install @aries0d0f/fetch-worker / pnpm add @aries0d0f/fetch-worker
+```
+
+To install from GitHub Packages instead, note that it requires authentication
+even for public packages, so point your package manager at the registry with
+a token that has `read:packages` scope first.
 
 Add to `.npmrc` in your project (or `~/.npmrc` globally):
 
@@ -42,12 +52,7 @@ Add to `.npmrc` in your project (or `~/.npmrc` globally):
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
-Then install as usual:
-
-```sh
-bun add @aries0d0f/fetch-worker
-# or: npm install @aries0d0f/fetch-worker / pnpm add @aries0d0f/fetch-worker
-```
+Then install as usual with the commands above.
 
 ## Usage
 
