@@ -48,39 +48,18 @@ jobs:
           " "$RUNNER_TEMP/changeset-status.json")
           echo "title=$TITLE" >> "$GITHUB_OUTPUT"
 
-      - name: Create/update Version Packages PR
+      - name: Create/update Version Packages PR, or publish
         id: changesets
         uses: changesets/action@v2
         with:
           pr-title: ${{ steps.version.outputs.title }}
+          publish-script: bun run release
+          create-github-releases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to npm
-        id: npm-publish
-        if: steps.changesets.outputs.has-changesets == 'false'
-        run: |
-          bun run release
-          NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
-            echo "published=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "published=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Push release tag
-        if: steps.npm-publish.outputs.published == 'true'
-        run: |
-          TAG="v${{ steps.npm-publish.outputs.version }}"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            git tag "$TAG"
-          fi
-          git push origin "$TAG"
-
       - name: Setup Node for GitHub Packages
-        if: steps.npm-publish.outputs.published == 'true'
+        if: steps.changesets.outputs.published == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: 26
@@ -88,7 +67,7 @@ jobs:
           scope: '@aries0d0f'
 
       - name: Publish to GitHub Packages
-        if: steps.npm-publish.outputs.published == 'true'
+        if: steps.changesets.outputs.published == 'true'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
