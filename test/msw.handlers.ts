@@ -36,7 +36,19 @@ export const handlers = [
   mock.delete('https://api.test/thing/1', () => new HttpResponse(null, { status: 204 })),
 
   mock.get('https://api.test/not-found', () =>
-    HttpResponse.json({ title: 'Not Found', status: 404, detail: 'missing' }, { status: 404 })
+    HttpResponse.json(
+      {
+        type: 'https://example.com/probs/not-found',
+        title: 'Not Found',
+        status: 404,
+        detail: 'missing'
+      },
+      { status: 404, headers: { 'Content-Type': 'application/problem+json' } }
+    )
+  ),
+
+  mock.get('https://api.test/json-error', () =>
+    HttpResponse.json({ message: 'nope' }, { status: 400 })
   ),
 
   mock.get('https://api.test/bad-error-body', () => new HttpResponse('oops', { status: 500 })),

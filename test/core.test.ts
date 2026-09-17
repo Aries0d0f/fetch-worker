@@ -38,19 +38,32 @@ describe('http.get', () => {
     expect(body['content-type']).toBe('application/json');
   });
 
-  it('rejects with a structured HTTP.Exception on a non-ok JSON error body', async () => {
+  it('rejects with an RFC 9457 problem for an application/problem+json error body', async () => {
     await expect(http.get('https://api.test/not-found')).rejects.toMatchObject({
       ok: false,
       status: 404,
-      error: { title: 'Not Found', status: 404, detail: 'missing' }
+      error: {
+        type: 'https://example.com/probs/not-found',
+        title: 'Not Found',
+        status: 404,
+        detail: 'missing'
+      }
     });
   });
 
-  it('falls back to a text-derived error when the error body is not JSON', async () => {
+  it('rejects with the raw response text for a plain JSON error body', async () => {
+    await expect(http.get('https://api.test/json-error')).rejects.toMatchObject({
+      ok: false,
+      status: 400,
+      error: JSON.stringify({ message: 'nope' })
+    });
+  });
+
+  it('rejects with the raw response text for a non-JSON error body', async () => {
     await expect(http.get('https://api.test/bad-error-body')).rejects.toMatchObject({
       ok: false,
       status: 500,
-      error: { detail: 'oops' }
+      error: 'oops'
     });
   });
 

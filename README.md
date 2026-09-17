@@ -91,13 +91,35 @@ Every response exposes the usual `fetch` `Response` members (`status`, `ok`,
 
 ### Error handling
 
-A non-2xx response rejects with a plain object rather than throwing:
+A non-2xx response rejects with a plain object rather than throwing. The
+`error` field depends on the response's `Content-Type`:
+
+- `application/problem+json` — parsed as an
+  [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) Problem Details object:
+  `{ type, title?, status?, detail?, instance?, ...extensions }`.
+- Anything else — the raw response body text, exactly as native `fetch` would
+  give you (no parsing or reshaping attempted).
+
+If your API always sends `application/problem+json` errors, just use `err.error`
+as a Problem Details object directly:
 
 ```ts
 try {
   await http.get('/api/missing');
 } catch (err) {
-  // err: { ok, status, statusText, url, headers, error: { title, status, detail } }
+  // err: { ok, status, statusText, url, headers, error }
+  console.error(err.error.title, err.error.detail);
+}
+```
+
+Otherwise, check `Content-Type` before assuming `err.error` is a Problem
+Details object rather than raw text:
+
+```ts
+if (/^\s*application\/problem\+json\s*(;|$)/i.test(err.headers['content-type'] ?? '')) {
+  console.error(err.error.title, err.error.detail); // RFC 9457 problem details
+} else {
+  console.error(err.error); // raw body
 }
 ```
 
