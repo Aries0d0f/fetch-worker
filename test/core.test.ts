@@ -75,6 +75,66 @@ describe('http.get', () => {
     controller.abort();
     await expect(request).rejects.toBeDefined();
   });
+
+  it('resolves the request normally when a controllable request is not aborted', async () => {
+    const { request, controller } = await http.get<{ hello: string }, true>(
+      'https://api.test/json',
+      {
+        controllable: true
+      }
+    );
+    expect(controller).toBeInstanceOf(AbortController);
+    const res = await request;
+    await expect(res.json()).resolves.toEqual({ hello: 'world' });
+  });
+
+  it('falls back to the raw response text when an application/problem+json body fails to parse', async () => {
+    await expect(http.get('https://api.test/malformed-problem')).rejects.toMatchObject({
+      ok: false,
+      status: 422,
+      error: 'not json'
+    });
+  });
+
+  it('iterates response headers via entries/keys/values/forEach', async () => {
+    const res = await http.get('https://api.test/echo-headers');
+
+    expect([...(await res.headers.entries())]).toEqual(
+      expect.arrayContaining([['content-type', 'application/json']])
+    );
+    expect([...(await res.headers.keys())]).toEqual(expect.arrayContaining(['content-type']));
+    expect([...(await res.headers.values())]).toEqual(expect.arrayContaining(['application/json']));
+
+    const collected: Record<string, string> = {};
+    res.headers.forEach((value, key) => {
+      collected[key] = value;
+    });
+    expect(collected['content-type']).toBe('application/json');
+  });
+
+  it('exposes the response body as an ArrayBuffer', async () => {
+    const res = await http.get('https://api.test/binary');
+    const buf = await res.arrayBuffer();
+    expect(new Uint8Array(buf)).toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  it('exposes the response body as bytes', async () => {
+    const res = await http.get('https://api.test/binary');
+    const bytes = await res.bytes();
+    expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  it('exposes the response body as a Blob', async () => {
+    const res = await http.get('https://api.test/binary');
+    const blob = await res.blob();
+    expect(blob.size).toBe(3);
+  });
+
+  it('exposes a multipart response body as FormData', async () => {
+    const res = await http.get('https://api.test/form-data-response');
+    const form = await res.formData();
+    expect(form.get('key')).toBe('value');
+  });
 });
 
 describe('http.head', () => {
@@ -100,6 +160,11 @@ describe('http.post / http.put / http.patch', () => {
     await expect(res.json()).resolves.toEqual({ a: 3 });
   });
 
+  it('serializes a non-object body via String() rather than JSON.stringify', async () => {
+    const res = await http.post<string, number>('https://api.test/echo-raw', 42);
+    await expect(res.text()).resolves.toBe('42');
+  });
+
   it('sends a FileList-like body as multipart form data', async () => {
     // Node has no FileList constructor; core.ts detects it via the
     // Symbol.toStringTag prototype marker rather than `instanceof FileList`,
@@ -123,5 +188,26 @@ describe('http.delete', () => {
   it('issues a DELETE request', async () => {
     const res = await http.delete('https://api.test/thing/1');
     expect(res.status).toBe(204);
+  });
+});
+
+describe('http.request', () => {
+  it('issues a GET-like request when called directly with a HEAD/GET/DELETE method', async () => {
+    const res = await http.request<{ hello: string }, false>(
+      'GET',
+      'https://api.test/json',
+      undefined
+    );
+    await expect(res.json()).resolves.toEqual({ hello: 'world' });
+  });
+
+  it('issues a body-carrying request when called directly with a POST/PUT/PATCH method', async () => {
+    const res = await http.request<{ a: number }, { a: number }, false>(
+      'POST',
+      'https://api.test/echo',
+      { a: 1 },
+      undefined
+    );
+    await expect(res.json()).resolves.toEqual({ a: 1 });
   });
 });
