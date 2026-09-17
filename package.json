@@ -11,14 +11,14 @@
     "http-client"
   ],
   "license": "MIT",
-  "author": "aries0d0f",
-  "homepage": "https://github.com/aries0d0f/fetch-worker#readme",
+  "author": "Aries0d0f",
+  "homepage": "https://github.com/Aries0d0f/fetch-worker#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aries0d0f/fetch-worker.git"
+    "url": "git+https://github.com/Aries0d0f/fetch-worker.git"
   },
   "bugs": {
-    "url": "https://github.com/aries0d0f/fetch-worker/issues"
+    "url": "https://github.com/Aries0d0f/fetch-worker/issues"
   },
   "type": "module",
   "sideEffects": false,
