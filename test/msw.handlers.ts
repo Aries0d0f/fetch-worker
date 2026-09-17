@@ -56,5 +56,32 @@ export const handlers = [
   mock.get('https://api.test/slow', async () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     return HttpResponse.json({ done: true });
-  })
+  }),
+
+  mock.get(
+    'https://api.test/malformed-problem',
+    () =>
+      new HttpResponse('not json', {
+        status: 422,
+        headers: { 'Content-Type': 'application/problem+json' }
+      })
+  ),
+
+  mock.get(
+    'https://api.test/binary',
+    () =>
+      new HttpResponse(new Uint8Array([1, 2, 3]).buffer, {
+        headers: { 'Content-Type': 'application/octet-stream' }
+      })
+  ),
+
+  mock.get('https://api.test/form-data-response', () => {
+    const form = new FormData();
+    form.append('key', 'value');
+    return HttpResponse.formData(form);
+  }),
+
+  mock.post('https://api.test/echo-raw', async ({ request }) =>
+    HttpResponse.text(await request.text())
+  )
 ];
