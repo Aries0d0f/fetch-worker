@@ -40,12 +40,14 @@ jobs:
       - name: Determine release title
         id: version
         run: |
-          bunx changeset status --since=origin/main --output="$RUNNER_TEMP/changeset-status.json"
-          TITLE=$(node -e "
-            const { releases } = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'));
-            const [release] = releases;
-            if (release) process.stdout.write(\`build: Release \${release.name}@\${release.newVersion}\`);
+          # Checked out as a detached SHA, so changesets cannot resolve its baseBranch.
+          git branch -f main HEAD
+          bunx changeset status --output="$RUNNER_TEMP/changeset-status.json"
+          TITLE=$(node -p "
+            const [release] = require(process.argv[1]).releases;
+            release ? \`build: Release \${release.name}@\${release.newVersion}\` : ''
           " "$RUNNER_TEMP/changeset-status.json")
+          echo "Resolved title: ${TITLE:-<none, nothing to release>}"
           echo "title=$TITLE" >> "$GITHUB_OUTPUT"
 
       - name: Create/update Version Packages PR, or publish
